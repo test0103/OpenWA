@@ -19,8 +19,10 @@ export class CreateSessionDto {
   @ApiPropertyOptional({
     description:
       'Session configuration options. Set autoRejectCalls (boolean, default false) to ' +
-      'automatically reject incoming calls — the call.received event is still emitted.',
-    example: { autoReconnect: true },
+      'automatically reject incoming calls — the call.received event is still emitted. ' +
+      'For the Baileys engine, set authToken/token/baileysAuthToken to a legacy JSON login token ' +
+      'to seed first-boot authentication credentials.',
+    example: { autoReconnect: true, authToken: { jid: '85294159615' } },
   })
   @IsOptional()
   config?: Record<string, unknown>;

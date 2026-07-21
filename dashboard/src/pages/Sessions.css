@@ -764,3 +764,28 @@
   font-size: 0.9375rem;
   color: var(--text-primary);
 }
+
+.sessions-page .auth-token-label {
+  display: block;
+  margin-top: 1rem;
+}
+
+.sessions-page .auth-token-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.sessions-page .auth-token-textarea:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.35);
+  border-color: rgba(59, 130, 246, 0.6);
+}

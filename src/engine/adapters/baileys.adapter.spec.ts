@@ -294,6 +294,42 @@ describe('BaileysAdapter lifecycle & status', () => {
     fakeSock.fire('creds.update', {});
     expect(saveCreds).toHaveBeenCalled();
   });
+  it('seeds first-boot creds from a JSON auth token', async () => {
+    const token = {
+      channel: '761847cfb1ad3de68e11239dcc26c30b',
+      clientStaticPrivateKey: 'CL8OKqbqT66FiGJtmV8fQy2FYGoTnnwNCYkfzvVSb1Q=',
+      clientStaticPublicKey: 'SCbuXHRi3jzfiU+ptcY6HjuEUZc+T+G9h84eOxz/qnM=',
+      device: 'iPhone8_1',
+      identityPrivateKey: '0MTXEfy/qx0+EVY3wk6GMusoiWzE2PBTC5gNhrO/6XA=',
+      identityPublicKey: 'Cnv/B4Lhfrq00V5dBnxFg5p9sazrozZIe9Ww8IcqUE4=',
+      jid: '85294159615',
+      registrationID: 5758839,
+      signPreKeyID: 5758839,
+      signPreKeyPrivateKey: 'wLeI7SWRA8D3gClb0TJc/n88x8+1q0vs7BN9eRDKEWo=',
+      signPreKeyPublicKey: 'BHCD9BjuNs+Bg19u1TzTe1mcLIMsoWQpdvI+7IkBO1c=',
+      signPreKeySignature: 'aymeTDoMciaCcJPYRnCHbEErLdhhu3Iyu3W1rSFgpaPTfSHb2wtBvGYhpu+WLd3Yp2wYQ32o0G8qoJ3e9OTgCQ==',
+    };
+    const adapter = new BaileysAdapter({
+      sessionId: 'sess-token',
+      dbSessionId: 'db-token',
+      authDir: './data/baileys',
+      authToken: token,
+    });
+
+    await adapter.initialize(noopCallbacks({}));
+
+    expect(saveCreds).toHaveBeenCalled();
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const baileys = jest.requireMock('@whiskeysockets/baileys') as { default: jest.Mock };
+    const lastCall = baileys.default.mock.calls.at(-1) as [{ auth: { creds: Record<string, unknown> } }];
+    const auth = lastCall[0].auth;
+    expect(auth.creds).toMatchObject({
+      registered: true,
+      registrationId: 5758839,
+      platform: 'iPhone8_1',
+      me: { id: '85294159615:0@s.whatsapp.net', name: 'iPhone8_1' },
+    });
+  });
 
   // C2 — resurrect-after-stop race
   it('C2: disconnect() during in-flight connect does NOT assign a socket or reach READY', async () => {

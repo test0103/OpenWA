@@ -19,6 +19,8 @@ export interface BaileysMessageStore {
  * factory; `authDir` is the base multi-file auth directory from the opaque `engine.baileys.*` blob
  * (the adapter appends the session id to isolate each session).
  */
+export type BaileysLoginToken = Record<string, unknown>;
+
 export interface BaileysAdapterConfig {
   /** Session NAME — keys the on-disk auth directory and LID-mapping provenance. */
   sessionId: string;
@@ -27,6 +29,8 @@ export interface BaileysAdapterConfig {
   authDir: string;
   proxyUrl?: string;
   proxyType?: 'http' | 'https' | 'socks4' | 'socks5';
+  /** Optional legacy/mobile JSON token used to seed Baileys creds before the first connection. */
+  authToken?: BaileysLoginToken;
   /** Persisted store for reply/forward/react/delete. Provided by the plugin; the four ops require it. */
   messageStore?: BaileysMessageStore;
   /** Persisted, cross-session lid->phone resolution table. Backs lid resolution beyond the in-memory map. */

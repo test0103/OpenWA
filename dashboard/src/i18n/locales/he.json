@@ -213,7 +213,12 @@
       "successTitle": "ה-Session נוצר",
       "successDesc": "Session \"{{name}}\" נוצר בהצלחה",
       "errorTitle": "היצירה נכשלה",
-      "errorDefault": "יצירת ה-Session נכשלה"
+      "errorDefault": "יצירת ה-Session נכשלה",
+      "authTokenLabel": "JSON login token (optional)",
+      "authTokenPlaceholder": "Paste the full JSON token here to pre-authenticate a Baileys session",
+      "authTokenHint": "Leave blank to use QR/pairing-code login. When provided, the token is saved as config.authToken and used by the Baileys engine on first start.",
+      "authTokenInvalidJson": "Token must be valid JSON.",
+      "authTokenInvalidObject": "Token JSON must be an object."
     },
     "delete": {
       "title": "אישור מחיקה",

@@ -213,7 +213,12 @@
       "successTitle": "సెషన్ సృష్టించబడింది",
       "successDesc": "సెషన్ \"{{name}}\" విజయవంతంగా సృష్టించబడింది",
       "errorTitle": "సృష్టి విఫలమైంది",
-      "errorDefault": "సెషన్‌ను సృష్టించడం విఫలమైంది"
+      "errorDefault": "సెషన్‌ను సృష్టించడం విఫలమైంది",
+      "authTokenLabel": "JSON login token (optional)",
+      "authTokenPlaceholder": "Paste the full JSON token here to pre-authenticate a Baileys session",
+      "authTokenHint": "Leave blank to use QR/pairing-code login. When provided, the token is saved as config.authToken and used by the Baileys engine on first start.",
+      "authTokenInvalidJson": "Token must be valid JSON.",
+      "authTokenInvalidObject": "Token JSON must be an object."
     },
     "delete": {
       "title": "తొలగింపును ధృవీకరించండి",

@@ -213,7 +213,12 @@
       "successTitle": "会话已创建",
       "successDesc": "会话 \"{{name}}\" 已成功创建",
       "errorTitle": "创建失败",
-      "errorDefault": "创建会话失败"
+      "errorDefault": "创建会话失败",
+      "authTokenLabel": "JSON 登录 token（可选）",
+      "authTokenPlaceholder": "在此粘贴完整 JSON token，用于预认证 Baileys 会话",
+      "authTokenHint": "留空则继续使用 QR/配对码登录。填写后会保存为 config.authToken，并在 Baileys 引擎首次启动时使用。",
+      "authTokenInvalidJson": "Token 必须是合法 JSON。",
+      "authTokenInvalidObject": "Token JSON 必须是对象。"
     },
     "delete": {
       "title": "确认删除",

@@ -213,7 +213,12 @@
       "successTitle": "Sesión creada",
       "successDesc": "Sesión \"{{name}}\" creada correctamente",
       "errorTitle": "Error al crear",
-      "errorDefault": "No se pudo crear la sesión"
+      "errorDefault": "No se pudo crear la sesión",
+      "authTokenLabel": "JSON login token (optional)",
+      "authTokenPlaceholder": "Paste the full JSON token here to pre-authenticate a Baileys session",
+      "authTokenHint": "Leave blank to use QR/pairing-code login. When provided, the token is saved as config.authToken and used by the Baileys engine on first start.",
+      "authTokenInvalidJson": "Token must be valid JSON.",
+      "authTokenInvalidObject": "Token JSON must be an object."
     },
     "delete": {
       "title": "Confirmar eliminación",
