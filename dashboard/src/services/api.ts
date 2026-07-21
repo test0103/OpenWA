@@ -537,13 +537,18 @@ async function requestText(endpoint: string): Promise<string> {
 // Session API
 // =============================================================================
 
+export interface CreateSessionPayload {
+  name: string;
+  config?: Record<string, unknown>;
+}
+
 export const sessionApi = {
   list: () => request<Session[]>('/sessions'),
   get: (id: string) => request<Session>(`/sessions/${id}`),
-  create: (name: string) =>
+  create: (nameOrPayload: string | CreateSessionPayload) =>
     request<Session>('/sessions', {
       method: 'POST',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(typeof nameOrPayload === 'string' ? { name: nameOrPayload } : nameOrPayload),
     }),
   delete: (id: string) => request<void>(`/sessions/${id}`, { method: 'DELETE' }),
   start: (id: string) => request<Session>(`/sessions/${id}/start`, { method: 'POST' }),

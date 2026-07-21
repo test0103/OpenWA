@@ -213,7 +213,12 @@
       "successTitle": "工作階段已建立",
       "successDesc": "工作階段 \"{{name}}\" 已成功建立",
       "errorTitle": "建立失敗",
-      "errorDefault": "建立工作階段失敗"
+      "errorDefault": "建立工作階段失敗",
+      "authTokenLabel": "JSON 登入 token（選填）",
+      "authTokenPlaceholder": "在此貼上完整 JSON token，用於預先認證 Baileys 工作階段",
+      "authTokenHint": "留空則繼續使用 QR／配對碼登入。填寫後會儲存為 config.authToken，並在 Baileys 引擎首次啟動時使用。",
+      "authTokenInvalidJson": "Token 必須是有效 JSON。",
+      "authTokenInvalidObject": "Token JSON 必須是物件。"
     },
     "delete": {
       "title": "確認刪除",

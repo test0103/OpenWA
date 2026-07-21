@@ -24,6 +24,8 @@ export function Sessions() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newSessionName, setNewSessionName] = useState('');
+  const [newSessionAuthToken, setNewSessionAuthToken] = useState('');
+  const [authTokenError, setAuthTokenError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [qrData, setQrData] = useState<{ sessionId: string; sessionName: string; qrCode: string } | null>(null);
   const [pairingMode, setPairingMode] = useState(false);
@@ -194,13 +196,41 @@ export function Sessions() {
     }
   };
 
+  const parseCreateAuthToken = (): { ok: true; token?: Record<string, unknown> } | { ok: false } => {
+    const trimmed = newSessionAuthToken.trim();
+    if (!trimmed) {
+      setAuthTokenError(null);
+      return { ok: true };
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        setAuthTokenError(t('sessions.create.authTokenInvalidObject'));
+        return { ok: false };
+      }
+      setAuthTokenError(null);
+      return { ok: true, token: parsed as Record<string, unknown> };
+    } catch {
+      setAuthTokenError(t('sessions.create.authTokenInvalidJson'));
+      return { ok: false };
+    }
+  };
+
   const handleCreate = async () => {
     if (!newSessionName.trim()) return;
+    const parsedAuthToken = parseCreateAuthToken();
+    if (!parsedAuthToken.ok) return;
     try {
       setCreating(true);
-      const newSession = await sessionApi.create(newSessionName);
+      const payload = parsedAuthToken.token
+        ? { name: newSessionName, config: { authToken: parsedAuthToken.token } }
+        : { name: newSessionName };
+      const newSession = await sessionApi.create(payload);
       setSessions([...sessions, newSession]);
       setNewSessionName('');
+      setNewSessionAuthToken('');
+      setAuthTokenError(null);
       setShowCreateModal(false);
       toast.success(t('sessions.create.successTitle'), t('sessions.create.successDesc', { name: newSession.name }));
     } catch (err) {
@@ -399,12 +429,21 @@ export function Sessions() {
       {showCreateModal && (
         <Modal
           open
-          onClose={() => setShowCreateModal(false)}
+          onClose={() => {
+            setShowCreateModal(false);
+            setAuthTokenError(null);
+          }}
           title={t('sessions.create.title')}
           closeLabel={t('common.close')}
           footer={
             <>
-              <button className="btn-secondary" onClick={() => setShowCreateModal(false)}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setAuthTokenError(null);
+                }}
+              >
                 {t('common.cancel')}
               </button>
               <button
@@ -449,6 +488,24 @@ export function Sessions() {
             sessions.some(s => s.name === newSessionName) && (
               <p className="input-error">{t('sessions.create.duplicate')}</p>
             )}
+
+          <label className="auth-token-label" htmlFor="session-auth-token">
+            {t('sessions.create.authTokenLabel')}
+          </label>
+          <textarea
+            id="session-auth-token"
+            className="auth-token-textarea"
+            placeholder={t('sessions.create.authTokenPlaceholder')}
+            value={newSessionAuthToken}
+            onChange={e => {
+              setNewSessionAuthToken(e.target.value);
+              if (authTokenError) setAuthTokenError(null);
+            }}
+            rows={8}
+            spellCheck={false}
+          />
+          <p className="input-hint">{t('sessions.create.authTokenHint')}</p>
+          {authTokenError && <p className="input-error">{authTokenError}</p>}
         </Modal>
       )}
 

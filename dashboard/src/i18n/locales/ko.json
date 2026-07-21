@@ -213,7 +213,12 @@
       "successTitle": "세션 생성 완료",
       "successDesc": "\"{{name}}\" 세션이 생성되었습니다",
       "errorTitle": "생성 실패",
-      "errorDefault": "세션을 생성하지 못했습니다"
+      "errorDefault": "세션을 생성하지 못했습니다",
+      "authTokenLabel": "JSON login token (optional)",
+      "authTokenPlaceholder": "Paste the full JSON token here to pre-authenticate a Baileys session",
+      "authTokenHint": "Leave blank to use QR/pairing-code login. When provided, the token is saved as config.authToken and used by the Baileys engine on first start.",
+      "authTokenInvalidJson": "Token must be valid JSON.",
+      "authTokenInvalidObject": "Token JSON must be an object."
     },
     "delete": {
       "title": "삭제 확인",
