@@ -735,6 +735,13 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
     }
   }
 
+  private resolveSessionAuthToken(
+    config: Record<string, unknown> | null | undefined,
+  ): Record<string, unknown> | undefined {
+    const token = config?.authToken ?? config?.token ?? config?.baileysAuthToken;
+    return token && typeof token === 'object' && !Array.isArray(token) ? (token as Record<string, unknown>) : undefined;
+  }
+
   private async initializeEngine(id: string, session: Session): Promise<void> {
     this.logger.log(`Initializing engine for session: ${session.name}`, {
       sessionId: id,
@@ -747,6 +754,7 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
       dbSessionId: id,
       proxyUrl: session.proxyUrl || undefined,
       proxyType: session.proxyType || undefined,
+      authToken: this.resolveSessionAuthToken(session.config),
     });
     this.engines.set(id, engine);
     // Clear any prior failure reason before a fresh start.

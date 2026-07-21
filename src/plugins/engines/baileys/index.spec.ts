@@ -58,6 +58,13 @@ describe('BaileysPlugin.createEngine (opaque config)', () => {
     expect(new BaileysPlugin().getEngineLibrary().name).toBe('@whiskeysockets/baileys');
   });
 
+  it('passes an auth token to the adapter', () => {
+    const token = { jid: '85294159615', clientStaticPublicKey: 'x' };
+    const plugin = new BaileysPlugin();
+    plugin.createEngine({ sessionId: 'sess-token', authToken: token });
+    expect(BaileysAdapter).toHaveBeenCalledWith(expect.objectContaining({ sessionId: 'sess-token', authToken: token }));
+  });
+
   it('passes the message store to the adapter', () => {
     const store = { put: jest.fn(), getMessage: jest.fn(), clearSession: jest.fn() };
     const plugin = new BaileysPlugin(store);

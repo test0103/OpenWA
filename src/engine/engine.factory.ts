@@ -19,6 +19,7 @@ export interface EngineCreateOptions {
   dbSessionId: string;
   proxyUrl?: string;
   proxyType?: 'http' | 'https' | 'socks4' | 'socks5';
+  authToken?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -115,6 +116,7 @@ export class EngineFactory implements OnModuleInit {
         dbSessionId: options.dbSessionId,
         proxyUrl: options.proxyUrl,
         proxyType: options.proxyType,
+        authToken: options.authToken,
       }) as IWhatsAppEngine;
     }
 

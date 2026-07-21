@@ -43,6 +43,7 @@ export class BaileysPlugin implements IEnginePlugin {
     const dbSessionId = config.dbSessionId as string;
     const proxyUrl = config.proxyUrl as string | undefined;
     const proxyType = config.proxyType as 'http' | 'https' | 'socks4' | 'socks5' | undefined;
+    const authToken = config.authToken as Record<string, unknown> | undefined;
 
     // Baileys' own config namespace, read from the opaque per-engine blob the factory supplies via
     // context.config (the `engine` sub-tree in configuration.ts). Per-call config carries only
@@ -56,6 +57,7 @@ export class BaileysPlugin implements IEnginePlugin {
       authDir,
       proxyUrl,
       proxyType,
+      authToken,
       messageStore: this.messageStore,
       lidMappingStore: this.lidMappingStore,
     });

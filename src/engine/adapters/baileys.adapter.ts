@@ -7,6 +7,7 @@ import type {
   MiscMessageGenerationOptions,
   WACallEvent,
   WAMessage,
+  AuthenticationCreds,
   WASocket,
 } from '@whiskeysockets/baileys';
 import { buildIncomingMessageFromBaileys, extractBaileysBody, mapBaileysStatus } from './baileys-message-mapper';
@@ -54,7 +55,7 @@ import { EngineRefusedError } from '../../common/errors/engine-refused.error';
 import { InvalidInviteCodeError } from '../../common/errors/invalid-invite-code.error';
 import { ChannelNotFoundError } from '../../common/errors/channel-not-found.error';
 import { createLogger } from '../../common/services/logger.service';
-import { BaileysAdapterConfig, BaileysLogger } from '../types/baileys.types';
+import { BaileysAdapterConfig, BaileysLogger, BaileysLoginToken } from '../types/baileys.types';
 import { BaileysSessionStore } from './baileys-session-store';
 import { buildVCard } from './vcard';
 import {
@@ -92,6 +93,91 @@ function createSilentLogger(): BaileysLogger {
 }
 
 const BAILEYS_LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error'];
+
+type MutableAuthenticationCreds = {
+  -readonly [K in keyof AuthenticationCreds]: AuthenticationCreds[K];
+};
+
+function stringField(token: BaileysLoginToken, key: string): string | undefined {
+  const value = token[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function numberField(token: BaileysLoginToken, key: string): number | undefined {
+  const value = token[key];
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : undefined;
+}
+
+function base64Bytes(token: BaileysLoginToken, key: string, expectedLength = 32): Uint8Array | undefined {
+  const value = stringField(token, key);
+  if (!value) return undefined;
+  try {
+    const bytes = Buffer.from(value, 'base64');
+    return bytes.length === expectedLength ? new Uint8Array(bytes) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function channelAsAdvSecretKey(channel: string | undefined): string | undefined {
+  if (!channel) return undefined;
+  if (/^[0-9a-f]{64}$/i.test(channel)) return Buffer.from(channel, 'hex').toString('base64');
+  try {
+    const decoded = Buffer.from(channel, 'base64');
+    return decoded.length === 32 ? channel : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function applyLoginTokenToCreds(creds: AuthenticationCreds, token: BaileysLoginToken): boolean {
+  const noisePublic = base64Bytes(token, 'clientStaticPublicKey');
+  const noisePrivate = base64Bytes(token, 'clientStaticPrivateKey');
+  const identityPublic = base64Bytes(token, 'identityPublicKey');
+  const identityPrivate = base64Bytes(token, 'identityPrivateKey');
+  const signedPreKeyPublic = base64Bytes(token, 'signPreKeyPublicKey');
+  const signedPreKeyPrivate = base64Bytes(token, 'signPreKeyPrivateKey');
+  const signedPreKeySignature = base64Bytes(token, 'signPreKeySignature', 64);
+  const registrationId = numberField(token, 'registrationID');
+  const signedPreKeyId = numberField(token, 'signPreKeyID') ?? registrationId;
+
+  if (
+    !noisePublic ||
+    !noisePrivate ||
+    !identityPublic ||
+    !identityPrivate ||
+    !signedPreKeyPublic ||
+    !signedPreKeyPrivate ||
+    !signedPreKeySignature ||
+    !registrationId ||
+    !signedPreKeyId
+  ) {
+    return false;
+  }
+
+  const mutable: MutableAuthenticationCreds = creds;
+  mutable.noiseKey = { public: noisePublic, private: noisePrivate };
+  mutable.signedIdentityKey = { public: identityPublic, private: identityPrivate };
+  mutable.signedPreKey = {
+    keyPair: { public: signedPreKeyPublic, private: signedPreKeyPrivate },
+    signature: signedPreKeySignature,
+    keyId: signedPreKeyId,
+  };
+  mutable.registrationId = registrationId;
+
+  const phone = stringField(token, 'jid') ?? stringField(token, 'in');
+  if (phone) {
+    creds.me = {
+      id: `${phone}:0@s.whatsapp.net`,
+      name: stringField(token, 'pushName') ?? stringField(token, 'device'),
+    };
+  }
+  creds.platform = stringField(token, 'device') ?? creds.platform;
+  creds.advSecretKey =
+    channelAsAdvSecretKey(stringField(token, 'advSecretKey') ?? stringField(token, 'channel')) ?? creds.advSecretKey;
+  creds.registered = true;
+  return true;
+}
 
 /**
  * Baileys logger, silent by default. Set `BAILEYS_LOG_LEVEL` (trace|debug|info|warn|error) to surface
@@ -218,6 +304,13 @@ export class BaileysAdapter implements IWhatsAppEngine {
     this.setStatus(EngineStatus.INITIALIZING);
     const b = await this.loadLib();
     const { state, saveCreds } = await b.useMultiFileAuthState(this.authPath);
+    if (this.config.authToken && !state.creds.registered) {
+      if (!applyLoginTokenToCreds(state.creds, this.config.authToken)) {
+        throw new Error('Invalid Baileys auth token: missing or malformed key material');
+      }
+      await saveCreds();
+      this.logger.log('Seeded Baileys auth state from JSON token', { sessionId: this.config.sessionId });
+    }
     const { version } = await b.fetchLatestBaileysVersion();
     // BaileysLogger matches ILogger exactly; cast needed because the module resolves the type
     // through a deep import path that TypeScript does not auto-unify here. Shared by the key
